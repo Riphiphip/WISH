@@ -15,7 +15,7 @@
 
 <IN_STRING>{
     "\\\""                  { yymore(); }
-    "\""                    { BEGIN(INITIAL); return STRING;}
+    "\""                    { yyleng -= 1; yytext[yyleng] = 0; BEGIN(INITIAL); return STRING;}
     .                       { yymore(); }
 }
 %%
