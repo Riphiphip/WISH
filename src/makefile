@@ -23,7 +23,11 @@ $(BUILDDIR):
 scanner.c: scanner.l
 	flex -o scanner.c --header-file=$(INCLUDEDIR)/scanner_generated.h scanner.l
 
+.PHONY: clean
 clean:
 	rm -f scanner.c
 	rm -f $(INCLUDEDIR)/scanner_generated.h
 	rm -f $(BUILDDIR)/*
+
+.PHONY: rebuild
+rebuild: clean all
