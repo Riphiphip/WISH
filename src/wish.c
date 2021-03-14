@@ -1,10 +1,29 @@
 #include "wish.h"
 
-int main(void)
+int main(int argc, char **argv)
 {
-    while (1)
+    bool expect_cwd = false;
+    for(int i = 0; i < argc; i++){
+        if (!strcmp(argv[i], "-p")){
+            expect_cwd = true;
+            continue;
+        }
+        if (expect_cwd) {
+            int result = chdir(argv[i]);
+            if (result) {
+                printf("Invalid path provided:\n\t%s\n", argv[i]);
+                exit(1); 
+            }
+            expect_cwd = false;
+            continue;
+        }
+    }
+
+    while (true)
     {
-        printf(">:$ ");
+        char *cwd_string = getcwd(NULL, 512);
+        printf("%s>:$ ", cwd_string);
+        free(cwd_string);
         int token = yylex();
         while (token != END)
         {
