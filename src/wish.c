@@ -3,16 +3,20 @@
 int main(int argc, char **argv)
 {
     bool expect_cwd = false;
-    for(int i = 0; i < argc; i++){
-        if (!strcmp(argv[i], "-p")){
+    for (int i = 0; i < argc; i++)
+    {
+        if (!strcmp(argv[i], "-p"))
+        {
             expect_cwd = true;
             continue;
         }
-        if (expect_cwd) {
+        if (expect_cwd)
+        {
             int result = chdir(argv[i]);
-            if (result) {
+            if (result)
+            {
                 printf("Invalid path provided:\n\t%s\n", argv[i]);
-                exit(1); 
+                exit(1);
             }
             expect_cwd = false;
             continue;
