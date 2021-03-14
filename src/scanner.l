@@ -22,8 +22,3 @@
     .                       { yymore(); }
 }
 %%
-
-// Debug code
-int main(void) {
-    return 0;
-}

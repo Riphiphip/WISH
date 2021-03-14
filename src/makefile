@@ -12,7 +12,7 @@ OBJ = $(patsubst %,$(BUILDDIR)/%,$(_OBJ))
 all: $(BUILDDIR)/$(TARGET)
 
 $(BUILDDIR)/$(TARGET): $(OBJ) $(BUILDDIR)
-	$(CC) -o $@ wish.c $(CFLAGS)
+	$(CC) -o $@ wish.c $(CFLAGS) $(OBJ)
 
 $(BUILDDIR)/%.o: %.c $(BUILDDIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
