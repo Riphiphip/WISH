@@ -14,7 +14,6 @@ all: $(BUILDDIR)/$(TARGET)
 $(BUILDDIR)/$(TARGET): $(OBJ) $(BUILDDIR)
 	$(CC) -o $@ wish.c $(CFLAGS)
 
-
 $(BUILDDIR)/%.o: %.c $(BUILDDIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
@@ -26,4 +25,5 @@ scanner.c: scanner.l
 
 clean:
 	rm -f scanner.c
+	rm -f $(INCLUDEDIR)/scanner.h
 	rm -f $(BUILDDIR)/*
