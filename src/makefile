@@ -31,3 +31,7 @@ clean:
 
 .PHONY: rebuild
 rebuild: clean all
+
+.PHONY: run
+run: $(BUILDDIR)/$(TARGET)
+	$(BUILDDIR)/wish
