@@ -8,9 +8,11 @@
 
 %%
 <INITIAL>{
+    <<EOF>>                 { return END; }
+    \n                      { return END; }
     ["]                     { BEGIN(IN_STRING); }
-    [\t\n\r\v ]+            ;
-    .                       { return yytext[0]; }
+    [\t\r\v ]+              ;
+    [^"\n\t\r\v ]+           { return STRING; }
 }
 
 <IN_STRING>{

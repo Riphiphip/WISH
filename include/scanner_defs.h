@@ -2,5 +2,5 @@
 
 enum token_types {
         STRING,
-        END
+        END,
     };

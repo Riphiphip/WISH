@@ -1,6 +1,15 @@
 #include "wish.h"
 
 int main(void) {
-    printf("Hello, World!\n");
+    int token = yylex();
+    while(token != END){
+        switch(token) {
+            case STRING:{
+                printf("%s\n",yytext);
+                break;
+            }
+        }
+        token = yylex();
+    }
     return 0;
 }
