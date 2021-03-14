@@ -21,9 +21,9 @@ $(BUILDDIR):
 	mkdir $@
 
 scanner.c: scanner.l
-	flex -o scanner.c --header-file=$(INCLUDEDIR)/scanner.h scanner.l
+	flex -o scanner.c --header-file=$(INCLUDEDIR)/scanner_generated.h scanner.l
 
 clean:
 	rm -f scanner.c
-	rm -f $(INCLUDEDIR)/scanner.h
+	rm -f $(INCLUDEDIR)/scanner_generated.h
 	rm -f $(BUILDDIR)/*

@@ -1,9 +1,6 @@
 %state IN_STRING
 %{
-    enum token_types {
-        STRING,
-        END
-    };
+    #include "scanner_defs.h"
 %}
 %option noyywrap
 %option array
