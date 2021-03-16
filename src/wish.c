@@ -10,6 +10,7 @@ int main(int argc, char **argv)
 {
     bool is_script_executor = false;
     bool expect_cwd = false;
+    bool should_exit = false;
     for (int i = 1; i < argc; i++)
     {
         if (!strcmp(argv[i], "-p"))
@@ -99,7 +100,9 @@ int main(int argc, char **argv)
 
             case END_OF_FILE:
             {
-                exit(0);
+                should_exit = true;
+                token = END;
+                continue;
             }
             }
             token = yylex();
@@ -107,7 +110,6 @@ int main(int argc, char **argv)
         yy_delete_buffer(flex_buffer);
         free(input);
         // Internal commands
-
         if (!strcmp(CD_COMMAND, arg_list[0]))
         {
             chdir(arg_list[1]);
@@ -148,6 +150,10 @@ int main(int argc, char **argv)
             }
         }
         freeArgList(arg_list);
+        if (should_exit)
+        {
+            exit(0);
+        }
     }
     return 0;
 }
