@@ -237,7 +237,7 @@ int initRedirection()
     // It's a syntax error to not include a redirection target immediately after a I/O redirection
     if (input_target == END)
     {
-        fprtintf(stderr, "wish: I/O redirections must be followed by a redirection target");
+        fprintf(stderr, "wish: I/O redirections must be followed by a redirection target");
         exit(1);
     }
 
