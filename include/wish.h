@@ -49,3 +49,5 @@ void freeArgList(char **arg_list);
 int initRedirection();
 
 #define BASE_ARGLIST_SIZE 8
+#define CD_COMMAND "cd"
+#define EXIT_COMMAND "exit"
