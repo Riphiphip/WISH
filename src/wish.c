@@ -23,11 +23,21 @@ int main(int argc, char **argv)
         }
     }
 
+    // Main loop
     while (true)
     {
         char *cwd_string = getcwd(NULL, 512);
         printf("%s>:$ ", cwd_string);
         free(cwd_string);
+        size_t size = 256;
+        char *input = (char *)malloc(sizeof(char) * size);
+        ssize_t input_length = getline(&input, &size, stdin);
+        if (input_length < 0)
+        {
+            printf("Reading user input failed:\n\tError code: %ld\n", input_length);
+            continue;
+        }
+        YY_BUFFER_STATE flex_buffer = yy_scan_string(input);
         int token = yylex();
         while (token != END)
         {
@@ -41,6 +51,7 @@ int main(int argc, char **argv)
             }
             token = yylex();
         }
+        yy_delete_buffer(flex_buffer);
     }
     return 0;
 }
