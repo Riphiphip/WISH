@@ -1,7 +1,7 @@
 #include "wish.h"
 #include <sys/wait.h>
-#include <errno.h>
 #include <stdio.h>
+#include <fcntl.h>
 
 #define FORK_FAIL -1
 #define FORK_IN_CHILD 0
@@ -224,4 +224,29 @@ pid_t executeScript(char *file)
         waitpid(-1, NULL, 0);
     }
     return pid;
+}
+
+/**
+ * Lexes the redirection target and checks if the target exists.
+ * @return 0 if the redirection target does not exist
+ * @return 1 otherwise
+ */
+int initRedirection()
+{
+    int input_target = yylex();
+    // It's a syntax error to not include a redirection target immediately after a I/O redirection
+    if (input_target == END)
+    {
+        fprtintf(stderr, "wish: I/O redirections must be followed by a redirection target");
+        exit(1);
+    }
+
+    int descriptor = open(yytext, O_RDONLY);
+    if (descriptor == -1)
+    {
+        return REDIR_TARGET_NO_EXIST;
+    }
+    close(descriptor);
+
+    return REDIR_TARGET_SUCCESS;
 }
