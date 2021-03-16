@@ -71,35 +71,48 @@ int main(int argc, char **argv)
         
         free(input);
         yy_delete_buffer(flex_buffer);
+        
+        // Internal commands
 
-        // Execute the command with the given options in a child process
-        pid_t child_pid = fork();
-        if (child_pid == FORK_FAIL)
-        {
-            exit(EXIT_FAILURE);
+        char cd_com[] = "cd";
+        char exit_com[] = "exit";
+        
+        if (strcmp(cd_com, arg_list[0]){
+            chdir(arg_list[1]);
         }
 
-        if (child_pid == FORK_IN_CHILD)
-        {
-            int status = execvp(arg_list[0], arg_list);
-            if (status == -1)
+        else if (strcmp(exit_com, arg_list[0])){
+            exit(0);
+        }
+        else {
+            // Execute the command with the given options in a child process
+            pid_t child_pid = fork();
+            if (child_pid == FORK_FAIL)
             {
-                perror(arg_list[0]);
+                exit(EXIT_FAILURE);
             }
-            exit(status);
-        }
-        else
-        {
-            // Wait for the command to finish execution
-            #ifdef DEBUG
-            int status;
-            waitpid(-1, &status, 0);
-            printf("exit %d\n", status);
-            #else
-            waitpid(-1, NULL, 0);
-            #endif
-        }
 
+            if (child_pid == FORK_IN_CHILD)
+            {
+                int status = execvp(arg_list[0], arg_list);
+                if (status == -1)
+                {
+                    perror(arg_list[0]);
+                }
+                exit(status);
+            }
+            else
+            {
+                // Wait for the command to finish execution
+                #ifdef DEBUG
+                int status;
+                waitpid(-1, &status, 0);
+                printf("exit %d\n", status);
+                #else
+                waitpid(-1, NULL, 0);
+                #endif
+            }
+        }
         freeArgList(arg_list);
     }
     return 0;
