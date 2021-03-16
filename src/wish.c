@@ -1,5 +1,7 @@
 #include "wish.h"
 #include <sys/wait.h>
+#include <errno.h>
+#include <stdio.h>
 
 #define FORK_FAIL -1
 #define FORK_IN_CHILD 0
@@ -81,28 +83,35 @@ int main(int argc, char **argv)
         pid_t child_pid = fork();
         if (child_pid == FORK_FAIL)
         {
-            exit(1);
+            exit(EXIT_FAILURE);
         }
 
         if (child_pid == FORK_IN_CHILD)
         {
-            execvp(command, options);
-            exit(0);
+            int status = execvp(command, options);
+            if (status == -1)
+            {
+                perror(command);
+            }
+            exit(status);
         }
         else
         {
             // Wait for the command to finish execution
+            #ifdef DEBUG
+            int status;
+            waitpid(-1, &status, 0);
+            printf("exit %d\n", status);
+            #else
             waitpid(-1, NULL, 0);
+            #endif
         }
 
         // Don't leak memory :)
         // Note: the command is freed in the first iteration
-        for (int i = 0; i < 256; i++)
+        for (int i = 0; i < option_count; i++)
         {
-            if (options[i] != NULL)
-            {
-                free(options[i]);
-            }
+            free(options[i]);
         }
         free(input);
     }
