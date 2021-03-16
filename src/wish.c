@@ -33,7 +33,7 @@ int main(int argc, char **argv)
     while (true)
     {
         char *cwd_string = getcwd(NULL, 512);
-        printf("%s>:$ ", cwd_string);
+        printf("%s (%d)>:$ ", cwd_string, getpid());
         free(cwd_string);
         size_t size = 256;
         char *input = (char *)malloc(sizeof(char *) * size);
@@ -50,28 +50,38 @@ int main(int argc, char **argv)
 
         YY_BUFFER_STATE flex_buffer = yy_scan_string(input);
         int token = yylex();
-        token = yylex();
         while (token != END)
         {
             switch (token)
             {
-            case STRING:
-            {
-                if (arg_count >= arg_list_size)
+                case STRING:
                 {
-                    arg_list_size = arg_list_size * 2;
-                    arg_list = resizeArgList(arg_list, arg_list_size);
+                    if (arg_count >= arg_list_size)
+                    {
+                        arg_list_size = arg_list_size * 2;
+                        arg_list = resizeArgList(arg_list, arg_list_size);
+                    }
+                    argListInsert(yytext, arg_list, arg_count);
+                    arg_count++;
+                    break;
                 }
-                argListInsert(yytext, arg_list, arg_count);
-                arg_count++;
-                break;
-            }
+
+                case REDIR_INPUT:
+                {
+                    printf("redirect input\n");
+                    break;
+                }
+
+                case REDIR_OUTPUT:
+                {
+                    printf("redirect output\n");
+                    break;
+                }
             }
             token = yylex();
         }
-        
-        free(input);
         yy_delete_buffer(flex_buffer);
+        free(input);
 
         // Execute the command with the given options in a child process
         pid_t child_pid = fork();
@@ -128,7 +138,7 @@ char **initArgList(size_t size)
  */
 char **resizeArgList(char **arg_list, size_t new_size)
 {
-    arg_list = realloc(arg_list, sizeof(char*) * (new_size + 1));
+    arg_list = realloc(arg_list, sizeof(char *) * (new_size + 1));
     return arg_list;
 }
 
