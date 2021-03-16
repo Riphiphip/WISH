@@ -39,4 +39,13 @@ void argListInsert(char *arg, char **arg_list, long index);
  */
 void freeArgList(char **arg_list);
 
+#define REDIR_TARGET_NO_EXIST 0
+#define REDIR_TARGET_SUCCESS 1
+/**
+ * Lexes the redirection target and checks if the target exists.
+ * @return 0 if the redirection target does not exist
+ * @return 1 otherwise
+ */
+int initRedirection();
+
 #define BASE_ARGLIST_SIZE 8

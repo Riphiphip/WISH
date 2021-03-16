@@ -1,7 +1,7 @@
 #include "wish.h"
 #include <sys/wait.h>
-#include <errno.h>
 #include <stdio.h>
+#include <fcntl.h>
 
 #define FORK_FAIL -1
 #define FORK_IN_CHILD 0
@@ -68,13 +68,22 @@ int main(int argc, char **argv)
 
                 case REDIR_INPUT:
                 {
-                    printf("redirect input\n");
+                    int redir_stat = initRedirection();
+                    // For input redirections, it is an error for the target not to exist
+                    if (redir_stat == REDIR_TARGET_NO_EXIST)
+                    {
+                        perror(yytext);
+                    }
+                    // TODO: Redirect the file to stdin using dup(2)/dup2(2) IN THE CHILD EXECUTING THE COMMAND
                     break;
                 }
 
                 case REDIR_OUTPUT:
                 {
-                    printf("redirect output\n");
+                    int redir_stat = initRedirection();
+                    // TODO: Redirecting stdout to the output target
+                    // * Create the output file if it doesn't exist
+                    // * Actually redirect stdout using dup(2)/dup2(2) IN THE CHILD EXECUTING THE COMMAND
                     break;
                 }
             }
@@ -169,4 +178,29 @@ void freeArgList(char **arg_list)
         i++;
     }
     free(arg_list);
+}
+
+/**
+ * Lexes the redirection target and checks if the target exists.
+ * @return 0 if the redirection target does not exist
+ * @return 1 otherwise
+ */
+int initRedirection()
+{
+    int input_target = yylex();
+    // It's a syntax error to not include a redirection target immediately after a I/O redirection
+    if (input_target == END)
+    {
+        fprtintf(stderr, "wish: I/O redirections must be followed by a redirection target");
+        exit(1);
+    }
+
+    int descriptor = open(yytext, O_RDONLY);
+    if (descriptor == -1)
+    {
+        return REDIR_TARGET_NO_EXIST;
+    }
+    close(descriptor);
+
+    return REDIR_TARGET_SUCCESS;
 }
