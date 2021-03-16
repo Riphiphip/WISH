@@ -50,7 +50,6 @@ int main(int argc, char **argv)
 
         YY_BUFFER_STATE flex_buffer = yy_scan_string(input);
         int token = yylex();
-        token = yylex();
         while (token != END)
         {
             switch (token)
