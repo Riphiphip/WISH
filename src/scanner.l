@@ -11,6 +11,8 @@
     <<EOF>>                 { return END; }
     \n                      { return END; }
     ["]                     { BEGIN(IN_STRING); }
+    [<]                     { return REDIR_INPUT; }
+    [>]                     { return REDIR_OUTPUT; }
     [\t\r\v ]+              ;
     [^"\n\t\r\v ]+          { return STRING; }
 }
