@@ -8,8 +8,9 @@
 
 int main(int argc, char **argv)
 {
+    bool is_script_executor = false;
     bool expect_cwd = false;
-    for (int i = 0; i < argc; i++)
+    for (int i = 1; i < argc; i++)
     {
         if (!strcmp(argv[i], "-p"))
         {
@@ -27,14 +28,32 @@ int main(int argc, char **argv)
             expect_cwd = false;
             continue;
         }
+        // Execute script
+        pid_t result = executeScript(argv[i]);
+        if (result == FORK_FAIL)
+        {
+            perror("Failed executing script");
+        }
+        else if (result != FORK_IN_CHILD)
+        {
+            exit(result);
+        }
+        else
+        {
+            is_script_executor = true;
+        }
     }
 
     // Main loop
     while (true)
     {
-        char *cwd_string = getcwd(NULL, 512);
-        printf("%s (%d)>:$ ", cwd_string, getpid());
-        free(cwd_string);
+        if (!is_script_executor)
+        {
+
+            char *cwd_string = getcwd(NULL, 512);
+            printf("%s (%d)>:$ ", cwd_string, getpid());
+            free(cwd_string);
+        }
         size_t size = 256;
         char *input = (char *)malloc(sizeof(char *) * size);
         ssize_t input_length = getline(&input, &size, stdin);
@@ -54,44 +73,52 @@ int main(int argc, char **argv)
         {
             switch (token)
             {
-                case STRING:
+            case STRING:
+            {
+                if (arg_count >= arg_list_size)
                 {
-                    if (arg_count >= arg_list_size)
-                    {
-                        arg_list_size = arg_list_size * 2;
-                        arg_list = resizeArgList(arg_list, arg_list_size);
-                    }
-                    argListInsert(yytext, arg_list, arg_count);
-                    arg_count++;
-                    break;
+                    arg_list_size = arg_list_size * 2;
+                    arg_list = resizeArgList(arg_list, arg_list_size);
                 }
+                argListInsert(yytext, arg_list, arg_count);
+                arg_count++;
+                break;
+            }
 
-                case REDIR_INPUT:
-                {
-                    printf("redirect input\n");
-                    break;
-                }
+            case REDIR_INPUT:
+            {
+                printf("redirect input\n");
+                break;
+            }
 
-                case REDIR_OUTPUT:
-                {
-                    printf("redirect output\n");
-                    break;
-                }
+            case REDIR_OUTPUT:
+            {
+                printf("redirect output\n");
+                break;
+            }
+
+            case END_OF_FILE:
+            {
+                exit(0);
+            }
             }
             token = yylex();
         }
         yy_delete_buffer(flex_buffer);
         free(input);
         // Internal commands
-        
-        if (!strcmp(CD_COMMAND, arg_list[0])){
+
+        if (!strcmp(CD_COMMAND, arg_list[0]))
+        {
             chdir(arg_list[1]);
         }
 
-        else if (!strcmp(EXIT_COMMAND, arg_list[0])){
+        else if (!strcmp(EXIT_COMMAND, arg_list[0]))
+        {
             exit(0);
         }
-        else {
+        else
+        {
             // Execute the command with the given options in a child process
             pid_t child_pid = fork();
             if (child_pid == FORK_FAIL)
@@ -110,14 +137,14 @@ int main(int argc, char **argv)
             }
             else
             {
-                // Wait for the command to finish execution
-                #ifdef DEBUG
+// Wait for the command to finish execution
+#ifdef DEBUG
                 int status;
                 waitpid(-1, &status, 0);
                 printf("exit %d\n", status);
-                #else
+#else
                 waitpid(-1, NULL, 0);
-                #endif
+#endif
             }
         }
         freeArgList(arg_list);
@@ -178,4 +205,23 @@ void freeArgList(char **arg_list)
         i++;
     }
     free(arg_list);
+}
+
+pid_t executeScript(char *file)
+{
+    pid_t pid = fork();
+    if (pid == FORK_IN_CHILD)
+    {
+        fclose(stdin);
+        stdin = fopen(file, "r");
+    }
+    else if (pid == FORK_FAIL)
+    {
+        perror("Script execution failed");
+    }
+    else
+    {
+        waitpid(-1, NULL, 0);
+    }
+    return pid;
 }

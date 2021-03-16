@@ -39,6 +39,9 @@ void argListInsert(char *arg, char **arg_list, long index);
  */
 void freeArgList(char **arg_list);
 
+pid_t executeScript(char* file);
+
 #define BASE_ARGLIST_SIZE 8
 #define CD_COMMAND "cd"
 #define EXIT_COMMAND "exit"
+#define EXECUTE_SCRIPT_COMMAND "source"

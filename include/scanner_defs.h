@@ -5,4 +5,5 @@ enum token_types {
         REDIR_OUTPUT,
         STRING,
         END,
+        END_OF_FILE,
     };

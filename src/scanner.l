@@ -8,7 +8,7 @@
 
 %%
 <INITIAL>{
-    <<EOF>>                 { return END; }
+    <<EOF>>                 { return END_OF_FILE; }
     \n                      { return END; }
     ["]                     { BEGIN(IN_STRING); }
     [<]                     { return REDIR_INPUT; }
