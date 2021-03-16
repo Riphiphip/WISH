@@ -1,4 +1,8 @@
 #include "wish.h"
+#include <sys/wait.h>
+
+#define FORK_FAIL -1
+#define FORK_IN_CHILD 0
 
 int main(int argc, char **argv)
 {
@@ -30,28 +34,77 @@ int main(int argc, char **argv)
         printf("%s>:$ ", cwd_string);
         free(cwd_string);
         size_t size = 256;
-        char *input = (char *)malloc(sizeof(char) * size);
+        char *input = (char *)malloc(sizeof(char *) * size);
         ssize_t input_length = getline(&input, &size, stdin);
         if (input_length < 0)
         {
             printf("Reading user input failed:\n\tError code: %ld\n", input_length);
             continue;
         }
+
         YY_BUFFER_STATE flex_buffer = yy_scan_string(input);
         int token = yylex();
+        char *command = NULL;
+
+        int option_count = 1;
+        char *options[256] = {NULL};
         while (token != END)
         {
             switch (token)
             {
-            case STRING:
-            {
-                printf("%s\n", yytext);
-                break;
-            }
+                case STRING:
+                {
+                    // First token is always the command
+                    if (command == NULL)
+                    {
+                        command = (char *)malloc(sizeof(char *) * yyleng);
+                        strcpy(command, yytext);
+                        // Command options cannot be NULL, and by convention, argv[0] is the name of the command/program being run
+                        options[0] = command;
+
+                        break;
+                    }
+
+                    // The rest are options
+                    char *option = (char *)malloc(sizeof(char *) * yyleng);
+                    strcpy(option, yytext);
+                    options[option_count++] = option;
+
+                    break;
+                }
             }
             token = yylex();
         }
         yy_delete_buffer(flex_buffer);
+
+        // Execute the command with the given options in a child process
+        pid_t child_pid = fork();
+        if (child_pid == FORK_FAIL)
+        {
+            exit(1);
+        }
+
+        if (child_pid == FORK_IN_CHILD)
+        {
+            execvp(command, options);
+            exit(0);
+        }
+        else
+        {
+            // Wait for the command to finish execution
+            waitpid(-1, NULL, 0);
+        }
+
+        // Don't leak memory :)
+        // Note: the command is freed in the first iteration
+        for (int i = 0; i < 256; i++)
+        {
+            if (options[i] != NULL)
+            {
+                free(options[i]);
+            }
+        }
+        free(input);
     }
     return 0;
 }

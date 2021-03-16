@@ -12,7 +12,7 @@
     \n                      { return END; }
     ["]                     { BEGIN(IN_STRING); }
     [\t\r\v ]+              ;
-    [^"\n\t\r\v ]+           { return STRING; }
+    [^"\n\t\r\v ]+          { return STRING; }
 }
 
 <IN_STRING>{
