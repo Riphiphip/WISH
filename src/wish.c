@@ -84,11 +84,11 @@ int main(int argc, char **argv)
         free(input);
         // Internal commands
         
-        if (strcmp(CD_COMMAND, arg_list[0])){
+        if (!strcmp(CD_COMMAND, arg_list[0])){
             chdir(arg_list[1]);
         }
 
-        else if (strcmp(EXIT_COMMAND, arg_list[0])){
+        else if (!strcmp(EXIT_COMMAND, arg_list[0])){
             exit(0);
         }
         else {
