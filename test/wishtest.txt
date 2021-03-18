@@ -1,0 +1,17 @@
+echo hello there
+ls
+echo that was a short ls
+ls -l
+echo and a long one!
+echo
+echo here's IO redirection :o
+cat < testscript
+echo and a more complex example...
+/bin/bash < testscript > outfrombashwish.txt
+echo and the result?
+cat < outfrombashwish.txt
+echo
+echo now some internal commands
+cd ..
+ls
+exit
