@@ -182,14 +182,12 @@ int main(int argc, char **argv)
                 {
                     in_descriptor = open(input_target, O_RDONLY);
                     dup2(in_descriptor, STDIN_FILENO);
-                    free(input_target);
                 }
 
                 if (output_target != NULL)
                 {
                     out_descriptor = open(output_target, O_RDWR);
                     dup2(out_descriptor, STDOUT_FILENO);
-                    free(output_target);
                 }
 
                 int status = execvp(arg_list[0], arg_list);
@@ -209,6 +207,11 @@ int main(int argc, char **argv)
             {
                 // Wait for the command to finish execution
                 waitpid(-1, NULL, 0);
+
+                if (input_target != NULL)
+                    free(input_target);
+                if (output_target != NULL)
+                    free(output_target);
             }
         }
         freeArgList(arg_list);
