@@ -68,6 +68,9 @@ int main(int argc, char **argv)
         size_t arg_count = 0;
         char **arg_list = initArgList(arg_list_size);
 
+        char *redir_target;
+        int redir_direction = -1;
+
         YY_BUFFER_STATE flex_buffer = yy_scan_string(input);
         int token = yylex();
         while (token != END)
@@ -88,13 +91,41 @@ int main(int argc, char **argv)
 
             case REDIR_INPUT:
             {
-                printf("redirect input\n");
+                int redir_status = initRedirection();
+                // For input redirections it is an error for the input not to exist
+                if (redir_status == REDIR_TARGET_NO_EXIST)
+                {
+                    perror("wish");
+                    break;
+                }
+
+                redir_direction = REDIR_INPUT;
+                redir_target = strdup(yytext);
                 break;
             }
 
             case REDIR_OUTPUT:
             {
-                printf("redirect output\n");
+                int redir_status = initRedirection();
+                // For output redirections we create the file if it doesn't exist
+                if (redir_status == REDIR_TARGET_NO_EXIST)
+                {
+                    int descriptor = open(yytext, O_CREAT);
+                    close(descriptor);
+                }
+
+                // But we need write permission for it
+                int descriptor = open(yytext, O_WRONLY);
+                if (descriptor == -1 && errno == EACCES)
+                {
+                    perror("wish");
+                    break;
+                }
+                close(descriptor);
+
+
+                redir_direction = REDIR_OUTPUT;
+                redir_target = strdup(yytext);
                 break;
             }
 
@@ -109,12 +140,12 @@ int main(int argc, char **argv)
         }
         yy_delete_buffer(flex_buffer);
         free(input);
+
         // Internal commands
         if (!strcmp(CD_COMMAND, arg_list[0]))
         {
             chdir(arg_list[1]);
         }
-
         else if (!strcmp(EXIT_COMMAND, arg_list[0]))
         {
             exit(0);
@@ -125,11 +156,25 @@ int main(int argc, char **argv)
             pid_t child_pid = fork();
             if (child_pid == FORK_FAIL)
             {
-                exit(EXIT_FAILURE);
+                perror("wish");
+                continue;
             }
 
             if (child_pid == FORK_IN_CHILD)
             {
+                // I/O redirection
+                if (redir_direction == REDIR_INPUT)
+                {
+                    int input_descriptor = open(redir_target, O_RDONLY);
+                    dup2(input_descriptor, STDIN_FILENO);
+                }
+
+                if (redir_direction == REDIR_OUTPUT)
+                {
+                    int output_descriptor = open(redir_target, O_RDWR);
+                    dup2(output_descriptor, STDOUT_FILENO);
+                }
+
                 int status = execvp(arg_list[0], arg_list);
                 if (status == -1)
                 {
