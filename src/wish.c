@@ -50,9 +50,8 @@ int main(int argc, char **argv)
     {
         if (!is_script_executor)
         {
-
             char *cwd_string = getcwd(NULL, 512);
-            printf("%s (%d)>:$ ", cwd_string, getpid());
+            printf("%s>:$ ", cwd_string);
             free(cwd_string);
         }
         size_t size = 256;
@@ -71,6 +70,7 @@ int main(int argc, char **argv)
         char *input_target = NULL;
         char *output_target = NULL;
 
+        bool abort = false;
         YY_BUFFER_STATE flex_buffer = yy_scan_string(input);
         int token = yylex();
         while (token != END)
@@ -92,6 +92,10 @@ int main(int argc, char **argv)
             case REDIR_INPUT:
             {
                 int redir_status = initRedirection();
+                if (redir_status == REDIR_TARGET_ERROR)
+                {
+                    abort = true;
+                }
                 // For input redirections it is an error for the input not to exist
                 if (redir_status == REDIR_TARGET_NO_EXIST)
                 {
@@ -106,6 +110,10 @@ int main(int argc, char **argv)
             case REDIR_OUTPUT:
             {
                 int redir_status = initRedirection();
+                if (redir_status == REDIR_TARGET_ERROR)
+                {
+                    abort = true;
+                }
                 // For output redirections we create the file if it doesn't exist
                 if (redir_status == REDIR_TARGET_NO_EXIST)
                 {
@@ -118,6 +126,7 @@ int main(int argc, char **argv)
                 if (descriptor == -1 && errno == EACCES)
                 {
                     perror("wish");
+                    abort = true;
                     break;
                 }
                 close(descriptor);
@@ -137,6 +146,14 @@ int main(int argc, char **argv)
         }
         yy_delete_buffer(flex_buffer);
         free(input);
+
+        // Error during lexing. The command should be aborted
+        if (abort)
+        {
+            freeArgList(arg_list);
+            continue;
+        }
+
         //Skip command execution if nothing was written
         if (arg_count == 0){
         }
@@ -273,7 +290,8 @@ pid_t executeScript(char *file)
 /**
  * Lexes the redirection target and checks if the target exists.
  * @return 0 if the redirection target does not exist
- * @return 1 otherwise
+ * @return 1 if the redirection target exists
+ * @return -1 if the redirection target was not specified
  */
 int initRedirection()
 {
@@ -281,8 +299,8 @@ int initRedirection()
     // It's a syntax error to not include a redirection target immediately after a I/O redirection
     if (input_target == END)
     {
-        fprintf(stderr, "wish: I/O redirections must be followed by a redirection target");
-        exit(1);
+        fprintf(stderr, "wish: I/O redirections must be followed by a redirection target\n");
+        return REDIR_TARGET_ERROR;
     }
 
     int descriptor = open(yytext, O_RDONLY);
