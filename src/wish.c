@@ -72,6 +72,12 @@ int main(int argc, char **argv)
         int token = yylex();
         while (token != END)
         {
+            // TASK A: print every token as captured by the lexer
+            // There's more in the I/O redirects because they perform an extra lex
+            #define TASK_A
+            #ifdef TASK_A
+            printf("%s\n", yytext);
+            #endif
             switch (token)
             {
             case STRING:
@@ -89,6 +95,9 @@ int main(int argc, char **argv)
             case REDIR_INPUT:
             {
                 int redir_status = initRedirection();
+                #ifdef TASK_A
+                printf("%s\n", yytext);
+                #endif
                 if (redir_status == REDIR_TARGET_ERROR)
                 {
                     abort = true;
@@ -100,6 +109,8 @@ int main(int argc, char **argv)
                     break;
                 }
 
+                if (input_target != NULL)
+                    free(output_target);
                 input_target = strdup(yytext);
                 break;
             }
@@ -107,6 +118,9 @@ int main(int argc, char **argv)
             case REDIR_OUTPUT:
             {
                 int redir_status = initRedirection();
+                #ifdef TASK_A
+                printf("%s\n", yytext);
+                #endif
                 if (redir_status == REDIR_TARGET_ERROR)
                 {
                     abort = true;
@@ -114,6 +128,7 @@ int main(int argc, char **argv)
                 // For output redirections we create the file if it doesn't exist
                 if (redir_status == REDIR_TARGET_NO_EXIST)
                 {
+                    // yytext contains the redirect target
                     int descriptor = open(yytext, O_CREAT);
                     close(descriptor);
                 }
@@ -128,6 +143,8 @@ int main(int argc, char **argv)
                 }
                 close(descriptor);
 
+                if (output_target != NULL)
+                    free(output_target);
                 output_target = strdup(yytext);
                 break;
             }
@@ -152,7 +169,8 @@ int main(int argc, char **argv)
         }
 
         //Skip command execution if nothing was written
-        if (arg_count == 0){
+        if (arg_count == 0) {
+            continue;
         }
         // Internal commands
         else if (!strcmp(CD_COMMAND, arg_list[0]))
