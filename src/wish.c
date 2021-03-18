@@ -175,7 +175,9 @@ int main(int argc, char **argv)
         // Internal commands
         else if (!strcmp(CD_COMMAND, arg_list[0]))
         {
-            chdir(arg_list[1]);
+            if (chdir(arg_list[1])==-1){
+                perror("wish");
+            }
         }
         else if (!strcmp(EXIT_COMMAND, arg_list[0]))
         {
