@@ -109,6 +109,7 @@ int main(int argc, char **argv)
                     break;
                 }
 
+                // If there are multiple I/O redirections, the previous target needs to be freed
                 if (input_target != NULL)
                     free(output_target);
                 input_target = strdup(yytext);
@@ -335,6 +336,8 @@ int initRedirection()
     int descriptor = open(yytext, O_RDONLY);
     if (descriptor == -1)
     {
+        // Technically also occurs when the file is read-only but for our purposes it doesn't matter
+        // open() will set errno and the redirection token handlers report it if it's an issue
         return REDIR_TARGET_NO_EXIST;
     }
     close(descriptor);
