@@ -135,7 +135,7 @@ int main(int argc, char **argv)
 
                 // But we need write permission for it and it should be truncated when opened
                 int descriptor = open(yytext, O_WRONLY|O_TRUNC);
-                if (descriptor == -1 && errno == EACCES)
+                if (descriptor == -1)
                 {
                     perror("wish");
                     abort = true;
