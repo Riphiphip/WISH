@@ -68,8 +68,8 @@ int main(int argc, char **argv)
         size_t arg_count = 0;
         char **arg_list = initArgList(arg_list_size);
 
-        char *redir_target;
-        int redir_direction = -1;
+        char *input_target = NULL;
+        char *output_target = NULL;
 
         YY_BUFFER_STATE flex_buffer = yy_scan_string(input);
         int token = yylex();
@@ -99,8 +99,7 @@ int main(int argc, char **argv)
                     break;
                 }
 
-                redir_direction = REDIR_INPUT;
-                redir_target = strdup(yytext);
+                input_target = strdup(yytext);
                 break;
             }
 
@@ -114,8 +113,8 @@ int main(int argc, char **argv)
                     close(descriptor);
                 }
 
-                // But we need write permission for it
-                int descriptor = open(yytext, O_WRONLY);
+                // But we need write permission for it and it should be truncated when opened
+                int descriptor = open(yytext, O_WRONLY|O_TRUNC);
                 if (descriptor == -1 && errno == EACCES)
                 {
                     perror("wish");
@@ -123,9 +122,7 @@ int main(int argc, char **argv)
                 }
                 close(descriptor);
 
-
-                redir_direction = REDIR_OUTPUT;
-                redir_target = strdup(yytext);
+                output_target = strdup(yytext);
                 break;
             }
 
@@ -163,15 +160,15 @@ int main(int argc, char **argv)
             if (child_pid == FORK_IN_CHILD)
             {
                 // I/O redirection
-                if (redir_direction == REDIR_INPUT)
+                if (input_target != NULL)
                 {
-                    int input_descriptor = open(redir_target, O_RDONLY);
+                    int input_descriptor = open(input_target, O_RDONLY);
                     dup2(input_descriptor, STDIN_FILENO);
                 }
 
-                if (redir_direction == REDIR_OUTPUT)
+                if (output_target != NULL)
                 {
-                    int output_descriptor = open(redir_target, O_RDWR);
+                    int output_descriptor = open(output_target, O_RDWR);
                     dup2(output_descriptor, STDOUT_FILENO);
                 }
 
@@ -184,14 +181,8 @@ int main(int argc, char **argv)
             }
             else
             {
-// Wait for the command to finish execution
-#ifdef DEBUG
-                int status;
-                waitpid(-1, &status, 0);
-                printf("exit %d\n", status);
-#else
+                // Wait for the command to finish execution
                 waitpid(-1, NULL, 0);
-#endif
             }
         }
         freeArgList(arg_list);
