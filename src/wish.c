@@ -3,9 +3,6 @@
 #include <stdio.h>
 #include <fcntl.h>
 
-#define FORK_FAIL -1
-#define FORK_IN_CHILD 0
-
 int main(int argc, char **argv)
 {
     bool is_script_executor = false;

@@ -6,6 +6,9 @@
 
 #include "scanner.h"
 
+#define FORK_FAIL -1
+#define FORK_IN_CHILD 0
+
 /**
  * Initializes list for holding execution arguments for commands.
  * Returned pointer points to malloced area
