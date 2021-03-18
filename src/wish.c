@@ -176,16 +176,20 @@ int main(int argc, char **argv)
             if (child_pid == FORK_IN_CHILD)
             {
                 // I/O redirection
+                int in_descriptor;
+                int out_descriptor;
                 if (input_target != NULL)
                 {
-                    int input_descriptor = open(input_target, O_RDONLY);
-                    dup2(input_descriptor, STDIN_FILENO);
+                    in_descriptor = open(input_target, O_RDONLY);
+                    dup2(in_descriptor, STDIN_FILENO);
+                    free(input_target);
                 }
 
                 if (output_target != NULL)
                 {
-                    int output_descriptor = open(output_target, O_RDWR);
-                    dup2(output_descriptor, STDOUT_FILENO);
+                    out_descriptor = open(output_target, O_RDWR);
+                    dup2(out_descriptor, STDOUT_FILENO);
+                    free(output_target);
                 }
 
                 int status = execvp(arg_list[0], arg_list);
@@ -193,6 +197,12 @@ int main(int argc, char **argv)
                 {
                     perror(arg_list[0]);
                 }
+
+                if (input_target != NULL)
+                    close(in_descriptor);
+                if (output_target != NULL)
+                    close(out_descriptor);
+
                 exit(status);
             }
             else
