@@ -137,9 +137,11 @@ int main(int argc, char **argv)
         }
         yy_delete_buffer(flex_buffer);
         free(input);
-
+        //Skip command execution if nothing was written
+        if (arg_count == 0){
+        }
         // Internal commands
-        if (!strcmp(CD_COMMAND, arg_list[0]))
+        else if (!strcmp(CD_COMMAND, arg_list[0]))
         {
             chdir(arg_list[1]);
         }
